@@ -297,3 +297,17 @@ Each phase starts with a small exercise on real data, for example: fetch one fee
 - **Changed from your documents (your call to veto):** region split from category; FastAPI deferred; launch cap of 15 per day.
 - **Still unresolved, needing your action:** per-source terms and access (Phase 0), the **[VERIFY]** provider items, and who the legal publisher is for the Privacy, Terms, and takedown pages. The legal pages and any questions about summarizing publishers' content on a future ad-supported site need qualified advice.
 
+
+ainews/
+├── .github/workflows/{ci,collect,monitor,maintenance}.yml
+├── db/migrations/001_schema.sql
+├── scripts/migrate.sh
+├── worker/
+│   ├── requirements.txt  pytest.ini  .env.example
+│   ├── app/{__init__,config,errors,db,urls,fetcher,signals,alerts,ingest,prefilter,extract,
+│   │        schemas,prompts,llm,evaluate,grounding,summarize,stories,grouping,risk,
+│   │        processing,jobs,publish,pipeline,monitor,retention,linkcheck,main}.py
+│   └── tests/{conftest,test_urls,test_grounding,test_pipeline}.py
+├── eval/{run_eval.py, data/relevance.jsonl, data/grouping.jsonl}
+└── web/ (Next.js)
+    └── src/{lib,components,app}/...
