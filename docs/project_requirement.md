@@ -343,15 +343,21 @@ The administrator is responsible for verifying and updating these records. Do no
 
 ### 5.1 How often should sources be checked?
 
-Check sources hourly for the MVP.
+**Check approved sources every two hours for the MVP.**
 
-Use source-specific scheduling and respect publisher rate limits. The architecture should allow different intervals later without requiring a complete redesign.
+The scheduler should run collection jobs on a configurable two-hour interval, subject to source-specific schedules, publisher rate limits, and hosting-platform restrictions.
+
+A collection cycle should retrieve newly available items, avoid reprocessing previously collected content unnecessarily, and pass eligible items into the processing pipeline.
+
+The architecture should allow the interval to be changed later without a major redesign. The administrator should be able to pause scheduled collection when necessary.
 
 ### 5.2 How quickly should news appear?
 
-The target is under one hour from original publication to appearance on the platform when the source makes the item available and the system can process it reliably.
+The target is to discover eligible news during the next scheduled collection cycle and publish it after the required processing and editorial checks.
 
-This is a target, not a guarantee. Monitor publication latency and explain delays through operational metrics. Do not publish unverified information just to meet the target.
+With a two-hour schedule, the system should aim to discover newly available stories within approximately two hours of their availability through an approved source, under normal operating conditions. Actual delay may be longer because of source publication delays, outages, processing failures, or human-review requirements.
+
+Measure and report discovery latency separately from publication latency. Do not publish unverified information to meet a timing target.
 
 ### 5.3 What outcomes should the agent support?
 

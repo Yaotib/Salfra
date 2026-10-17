@@ -6,6 +6,8 @@ Build an AI-powered news curation platform that automatically monitors credible 
 
 The platform will use an AI agent to discover relevant articles, evaluate their relevance, identify duplicate coverage, consolidate reports about the same event, generate concise factual summaries, and preserve links to original sources.
 
+**The agent will run a scheduled news collection cycle every two hours**, subject to source-specific access restrictions, operational limits, and system availability.
+
 Coverage will focus on global AI and technology developments while including significant news from Ghana and the wider African technology ecosystem.
 
 The objective is to help readers stay informed about important developments without having to monitor numerous publications individually.
@@ -22,7 +24,7 @@ The platform should become a useful destination for AI enthusiasts, developers, 
 
 The platform should:
 
-1. Monitor credible AI and technology news sources automatically.
+1. Monitor credible AI and technology news sources automatically on a two-hour schedule.
 2. Discover new articles and significant updates.
 3. Identify relevant and important developments.
 4. Detect duplicate articles and consolidate coverage of the same event.
@@ -78,7 +80,7 @@ Significant developments from Ghana and Africa should be included alongside glob
 
 The AI agent is the core processing component of the platform.
 
-### 5.1 Source monitoring
+### 5.1 Source Monitoring
 
 The agent should monitor a configurable registry of credible sources, potentially including:
 
@@ -96,14 +98,35 @@ These sources must be evaluated for credibility, relevance, access methods, and 
 
 The platform should prefer authorized APIs, RSS feeds, permitted publisher integrations, and licensed data providers. It must not assume that publicly accessible content can be freely scraped or republished.
 
-### 5.2 Article collection
+### 5.2 Collection Schedule and Frequency
+
+The agent must run its scheduled news collection cycle **every two hours**.
+
+Requirements:
+
+- Run the collection workflow at two-hour intervals.
+- Make the interval configurable so it can be adjusted in the future.
+- Support source-specific schedules when necessary to respect publisher limits or access requirements.
+- Record each scheduled run, its start and completion times, its result, and any errors.
+- Detect missed or delayed runs and resume safely when the system becomes available.
+- Avoid creating duplicate records or publications when a job is retried.
+- Respect source rate limits and permitted access methods.
+- Allow authorized administrators to pause collection globally or disable individual sources.
+
+A scheduled run should collect newly available articles and eligible updates since the previous successful collection. Where supported, the system should use publication timestamps, feed identifiers, pagination, cursors, or other source-specific mechanisms to reduce missed items.
+
+If a source becomes unavailable during a run, the agent should record the failure and apply controlled retry behavior rather than repeatedly overwhelming the source.
+
+**Important:** A two-hour schedule is the collection frequency, not a guarantee that every story will be published within two hours. Retrieval delays, processing, evidence checks, and human review can increase end-to-end publication time.
+
+### 5.3 Article Collection
 
 For each discovered article, the system should capture and validate available information, including:
 
 - Headline.
 - Publisher.
 - Original article URL.
-- Publication timestamp.
+- Publication timestamp, where available.
 - Collection timestamp.
 - Permitted article text or excerpts.
 - Relevant topics.
@@ -111,9 +134,9 @@ For each discovered article, the system should capture and validate available in
 
 Malformed, incomplete, inaccessible, or irrelevant items should be handled according to defined validation rules.
 
-### 5.3 Processing workflow
+### 5.4 Processing Workflow
 
-The agent should:
+For each scheduled collection cycle, the agent should:
 
 1. Discover new articles.
 2. Retrieve permitted content and metadata.
@@ -131,7 +154,7 @@ The agent should:
 
 The agent should prioritize meaningful developments instead of publishing every article it encounters.
 
-### 5.4 Story consolidation
+### 5.5 Story Consolidation
 
 The system must distinguish between an individual publisher's article and a consolidated story representing an underlying event.
 
@@ -146,7 +169,7 @@ When multiple publishers report the same event, the platform should be able to p
 
 The system must avoid grouping unrelated articles merely because they mention the same company, person, or technology.
 
-### 5.5 AI-generated summaries
+### 5.6 AI-Generated Summaries
 
 Each story should help readers understand:
 
@@ -180,7 +203,9 @@ It may include:
 
 The interface should communicate recency and relevance without presenting unsupported AI-generated popularity rankings.
 
-### 6.2 Story cards
+The latest feed should remain chronological by default, using the best available publication timestamp and clearly indicating updates.
+
+### 6.2 Story Cards
 
 Each story card should display appropriate information such as:
 
@@ -193,7 +218,7 @@ Each story card should display appropriate information such as:
 
 Cards should be consistent, easy to scan, and readable on small screens.
 
-### 6.3 Individual story pages
+### 6.3 Individual Story Pages
 
 Each story page should provide:
 
@@ -209,7 +234,7 @@ Each story page should provide:
 
 The platform should not present its summaries as original reporting by the publishers whose articles it references.
 
-### 6.4 Search and discovery
+### 6.4 Search and Discovery
 
 Visitors should be able to search for developments by keyword, headline, company, technology, or topic.
 
@@ -217,7 +242,7 @@ Basic filtering should include relevant topic tags, publishers, and publication 
 
 Ordinary full-text search should be evaluated for the initial release. Semantic search can be introduced later if it provides measurable benefits.
 
-### 6.5 User experience
+### 6.5 User Experience
 
 The website should support:
 
@@ -251,11 +276,14 @@ Source credibility should be treated as one factor in evaluating information, no
 
 The platform must not reproduce complete publisher articles without appropriate permission.
 
+The two-hour collection schedule must never override editorial safeguards. If an item requires more evidence or human review, it should remain pending until the relevant quality requirements are satisfied.
+
 ## 8. Administrative Capabilities
 
 A basic administrative interface should allow authorized operators to:
 
 - Add, edit, enable, and disable news sources.
+- Configure and inspect the two-hour collection schedule.
 - Monitor collection and processing jobs.
 - Inspect failures and initiate safe retries.
 - Review stories that require human approval.
@@ -264,6 +292,7 @@ A basic administrative interface should allow authorized operators to:
 - Publish, unpublish, or correct stories.
 - Inspect relevant processing history.
 - Monitor system health and operational errors.
+- Pause source collection or publishing when necessary.
 
 The minimum administrative feature set should be confirmed before implementation to avoid unnecessary complexity.
 
@@ -276,11 +305,13 @@ Evaluate the following candidate stack before finalizing implementation decision
 - **Database:** PostgreSQL, potentially hosted on Supabase.
 - **AI processing:** A suitable language-model API with structured outputs and validation.
 - **News collection:** Official APIs, RSS feeds, permitted publisher integrations, or licensed providers.
-- **Background processing:** Scheduled workers, with a task queue if justified.
+- **Background processing:** A persistent scheduled worker that triggers collection every two hours, with a task queue if justified.
 - **Hosting:** Appropriate frontend, backend, database, and worker hosting.
 - **Monitoring:** Structured logs, error tracking, retry handling, and alerts.
 
 The public website must be separate from the background collection and AI-processing pipeline. Opening the homepage should not trigger a complete collection run.
+
+The scheduler must run independently of visitor traffic. The implementation should use a reliable scheduling mechanism that supports the intended two-hour interval. It must not depend on a web request occurring at the right time or on a hosting environment that regularly suspends the worker.
 
 The database should distinguish sources, individual source articles, consolidated stories, article-to-story relationships, processing jobs, and audit records as appropriate.
 
@@ -299,45 +330,52 @@ The platform should implement:
 - Monitoring for failed collection and processing jobs.
 - Cost monitoring for AI and hosting services.
 - Logging for important processing and publication actions.
+- Detection of missed, delayed, or stuck scheduled jobs.
 
 The system should remain usable when a source is temporarily unavailable or an AI provider experiences an outage. Previously published stories should remain accessible.
 
+Operational monitoring should run independently of the two-hour collection schedule. Critical failures should be detected and reported promptly rather than waiting for the next scheduled news run.
+
+If a scheduled run fails, the system should record the failure, retry eligible operations safely, and resume collection without creating duplicate stories. If provider limits or budget caps are reached, the system should pause or queue AI-dependent work safely rather than triggering unapproved charges.
+
 ## 11. Implementation Roadmap
 
-### Phase 1: Discovery and research
+### Phase 1: Discovery and Research
 
-Confirm requirements, intended audience, initial sources, access permissions, budget, publication rules, and success metrics.
+Confirm requirements, intended audience, initial sources, access permissions, budget, publication rules, the two-hour collection interval, and success metrics.
 
-### Phase 2: Technical foundation
+### Phase 2: Technical Foundation
 
 Set up the repository, database, backend, frontend, configuration, and development environment.
 
-### Phase 3: News collection
+### Phase 3: News Collection
 
-Implement source management, scheduled retrieval, metadata normalization, validation, and duplicate prevention.
+Implement source management, the two-hour scheduler, retrieval, metadata normalization, validation, duplicate prevention, run tracking, and failure recovery.
 
-### Phase 4: AI curation
+### Phase 4: AI Curation
 
 Implement relevance assessment, story grouping, summarization, topic classification, source attribution, and publication controls.
 
-### Phase 5: Public website
+### Phase 5: Public Website
 
 Build the homepage, story cards, individual story pages, search, filtering, and responsive navigation.
 
 ### Phase 6: Administration
 
-Build source management, processing monitoring, review workflows, correction tools, and basic operational controls.
+Build source management, schedule configuration, processing monitoring, review workflows, correction tools, and basic operational controls.
 
-### Phase 7: Testing and deployment
+### Phase 7: Testing and Deployment
 
-Test factual accuracy, classification, duplicate detection, source failures, security, performance, accessibility, and recovery behavior. Deploy with a limited set of validated sources and expand based on measured performance.
+Test factual accuracy, classification, duplicate detection, scheduled execution, missed runs, source failures, security, performance, accessibility, and recovery behavior. Deploy with a limited set of validated sources and expand based on measured performance.
 
 ## 12. Definition of Success
 
 The platform should be evaluated using measurable indicators, including:
 
 - Reliability of automated source collection.
-- Time between original publication and platform availability.
+- Percentage of scheduled two-hour collection runs completed successfully.
+- Time between original publication and platform discovery.
+- Time between discovery and publication.
 - Relevance and accuracy of curated stories.
 - Factual faithfulness of AI-generated summaries.
 - Duplicate detection and story-grouping accuracy.
@@ -348,13 +386,15 @@ The platform should be evaluated using measurable indicators, including:
 - Operating cost per curated story.
 - Reader engagement and repeat visits.
 
-Specific targets should be established after the initial evaluation dataset and expected usage have been defined.
+Measure discovery latency separately from publication latency. The two-hour schedule provides a collection target, not a guarantee of immediate publication. Source availability, processing failures, evidence requirements, and human review can all affect the final publication time.
+
+Specific performance targets should be established after the initial evaluation dataset and expected usage have been defined.
 
 ## 13. Minimum Viable Product
 
 The first release should focus on:
 
-1. Automated news collection from a small, validated source registry.
+1. Automated news collection from a small, validated source registry on a two-hour schedule.
 2. AI-powered relevance assessment and summarization.
 3. Duplicate detection and consolidated story management.
 4. Source attribution and original article links.
@@ -362,7 +402,7 @@ The first release should focus on:
 6. Individual story pages.
 7. Search and basic topic filtering.
 8. A basic administrative interface for source and content management.
-9. Quality validation, logging, and failure recovery.
+9. Quality validation, logging, scheduled-job monitoring, and failure recovery.
 10. Deployment and operational monitoring.
 
 Email subscriptions, scheduled email briefings, subscriber accounts, personalized newsletters, mobile applications, and paid subscriptions are explicitly excluded from the initial release.
@@ -375,16 +415,19 @@ Before implementation, confirm:
 
 - The primary target audience.
 - The initial approved source list and permitted access methods.
-- How frequently sources should be checked.
+- The two-hour collection interval and any justified source-specific exceptions.
 - The minimum quality requirements for automatic publication.
 - Which stories require human review.
 - The expected volume of collected and published stories.
 - The operating budget.
 - The final hosting and AI providers.
 - The initial search and administrative feature set.
+- How missed or delayed collection runs should be recovered and reported.
 
 These decisions should inform the final Product Requirements Document, architecture, database specification, AI-agent specification, testing plan, and implementation roadmap.
 
 ## 15. Final Product Goal
 
-Deliver a reliable AI-powered news curation platform that discovers important AI and technology developments, combines related coverage, produces concise and trustworthy summaries, and makes the resulting stories easy to browse and search through a public-facing blog.
+Deliver a reliable AI-powered news curation platform that checks approved sources every two hours, discovers important AI and technology developments, combines related coverage, produces concise and trustworthy summaries, and makes the resulting stories easy to browse and search through a public-facing blog.
+
+The platform must balance timely discovery with factual accuracy, source permissions, transparency, reliability, and cost control. The schedule should support consistent news discovery without forcing the agent to publish stories that have not met the required quality standards.
