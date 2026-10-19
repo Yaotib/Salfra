@@ -20,7 +20,7 @@ jobs:
           cache-dependency-path: worker/requirements.txt
       - run: pip install -r worker/requirements.txt
       - run: python -m app.main collect --trigger ${{ github.event_name }} ${{ github.event_name == 'workflow_dispatch' && '--force' || '' }}
-        working-directory: worker
+        working-directory: worker       
         env:
           ENV: prod
           LLM_JSON_MODE: "1"
@@ -38,7 +38,3 @@ jobs:
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
           ALERT_EMAIL_TO: ${{ secrets.ALERT_EMAIL_TO }}
           ALERT_EMAIL_FROM: ${{ secrets.ALERT_EMAIL_FROM }}
-          LLM_JSON_MODE: "1"
-          LLM_MIN_INTERVAL_SECONDS: "20"
-          MAX_ARTICLES_PER_RUN: "6"
-          LLM_REASONING_EFFORT: "low"
