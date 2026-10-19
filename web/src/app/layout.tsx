@@ -1,0 +1,50 @@
+// web/src/app/layout.tsx
+import type { Metadata } from "next";
+import Link from "next/link";
+// @ts-expect-error Next.js processes this global stylesheet import.
+import "./globals.css";
+import { SITE_NAME, SITE_URL } from "@/lib/format";
+
+export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
+  title: { default: `${SITE_NAME}: AI and technology news, summarised`, template: `%s · ${SITE_NAME}` },
+  description: "Curated AI and technology news, including Ghana and Africa. AI-generated summaries that link to the original reporting.",
+  alternates: { types: { "application/rss+xml": "/feed.xml" } },
+};
+
+const NAV = [
+  ["/stories", "Latest"], ["/category/ai-news", "AI News"], ["/category/global-tech", "Global Tech"],
+  ["/category/product-releases", "Product Releases"], ["/category/african-tech", "African Tech"], ["/search", "Search"],
+];
+const FOOTER = [
+  ["/about", "About"], ["/methodology", "Methodology and AI disclosure"], ["/corrections", "Corrections"],
+  ["/sources", "Sources"], ["/contact", "Contact"], ["/privacy", "Privacy"], ["/terms", "Terms"],
+  ["/region/ghana", "Ghana"], ["/region/africa", "Africa"], ["/feed.xml", "RSS"],
+];
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en">
+      <body>
+        <a className="skip" href="#main">Skip to content</a>
+        <header className="site">
+          <div className="wrap">
+            <Link className="brand" href="/">{SITE_NAME}</Link>
+            <nav className="main" aria-label="Main">
+              {NAV.map(([href, label]) => <Link key={href} href={href}>{label}</Link>)}
+            </nav>
+          </div>
+        </header>
+        <main id="main" className="wrap">{children}</main>
+        <footer className="site">
+          <div className="wrap">
+            <p>Summaries are AI-generated and may contain errors. Always check the linked original sources.</p>
+            <nav aria-label="Footer">
+              {FOOTER.map(([href, label]) => <span key={href}><Link href={href}>{label}</Link>{" · "}</span>)}
+            </nav>
+          </div>
+        </footer>
+      </body>
+    </html>
+  );
+}

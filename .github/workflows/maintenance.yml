@@ -1,0 +1,56 @@
+# .github/workflows/maintenance.yml
+name: maintenance
+on:
+  schedule:
+    - cron: "30 3 * * *"
+  workflow_dispatch: {}
+jobs:
+  housekeeping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: worker/requirements.txt
+      - run: pip install -r worker/requirements.txt
+      - run: |
+          python -m app.main retention
+          python -m app.main linkcheck
+        working-directory: worker
+        env:
+          ENV: prod
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          USER_AGENT: ${{ secrets.USER_AGENT }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          ALERT_EMAIL_TO: ${{ secrets.ALERT_EMAIL_TO }}
+          ALERT_EMAIL_FROM: ${{ secrets.ALERT_EMAIL_FROM }}
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Install a pg_dump matching the server major version (17 here; match your Supabase version)
+        run: |
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc --fail https://www.postgresql.org/media/keys/ACCC4CF8.asc
+          sudo sh -c 'echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+          sudo apt-get update && sudo apt-get install -y postgresql-client-17
+      - name: Dump and encrypt
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: |
+          /usr/lib/postgresql/17/bin/pg_dump "$DATABASE_URL" --no-owner --no-privileges --schema=public -Fc -f backup.dump
+          gpg --batch --yes --passphrase "$BACKUP_PASSPHRASE" --symmetric --cipher-algo AES256 -o "ainews-$(date +%F).dump.gpg" backup.dump
+          rm backup.dump
+      - uses: actions/upload-artifact@v4
+        with:
+          name: db-backup
+          path: ainews-*.dump.gpg
+          retention-days: 14
+      - name: Heartbeat
+        run: curl -fsS -m 10 "${{ secrets.BACKUP_HEARTBEAT_URL }}" || true

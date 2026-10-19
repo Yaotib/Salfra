@@ -1,0 +1,7 @@
+# worker/requirements.txt
+psycopg[binary]>=3.2
+httpx>=0.27
+feedparser>=6.0
+trafilatura>=1.12
+pydantic>=2.7
+pytest>=8
