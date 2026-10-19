@@ -42,9 +42,7 @@ class LLMClient:
         payload = {"model": self.cfg.llm_model, "messages": messages, "temperature": 0}
         if self.cfg.llm_json_mode:
             payload["response_format"] = {"type": "json_object"}
-        if self.cfg.llm_reasoning_effort:
-            payload["reasoning_effort"] = self.cfg.llm_reasoning_effort
-
+            
         url = f"{self.cfg.llm_base_url.rstrip('/')}/chat/completions"
         headers = {"Authorization": f"Bearer {self.cfg.llm_api_key}"}  # never logged
         last = "no attempt made"
