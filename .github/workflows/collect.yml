@@ -19,10 +19,14 @@ jobs:
           cache: pip
           cache-dependency-path: worker/requirements.txt
       - run: pip install -r worker/requirements.txt
-      - run: python -m app.main collect
+      - run: python -m app.main collect --trigger ${{ github.event_name }} ${{ github.event_name == 'workflow_dispatch' && '--force' || '' }}
         working-directory: worker
         env:
           ENV: prod
+          LLM_JSON_MODE: "1"
+          LLM_MIN_INTERVAL_SECONDS: "20"
+          MAX_ARTICLES_PER_RUN: "6"
+          LLM_REASONING_EFFORT: "low"
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           USER_AGENT: ${{ secrets.USER_AGENT }}
           LLM_BASE_URL: ${{ secrets.LLM_BASE_URL }}

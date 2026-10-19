@@ -2,7 +2,7 @@
 name: maintenance
 on:
   schedule:
-    - cron: "30 3 * * *"
+    - cron: "47 3 * * *"
   workflow_dispatch: {}
 jobs:
   housekeeping:
