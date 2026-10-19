@@ -42,31 +42,37 @@ class LLMClient:
         payload = {"model": self.cfg.llm_model, "messages": messages, "temperature": 0}
         if self.cfg.llm_json_mode:
             payload["response_format"] = {"type": "json_object"}
-
         if self.cfg.llm_reasoning_effort:
             payload["reasoning_effort"] = self.cfg.llm_reasoning_effort
 
+        url = f"{self.cfg.llm_base_url.rstrip('/')}/chat/completions"
         headers = {"Authorization": f"Bearer {self.cfg.llm_api_key}"}  # never logged
+        last = "no attempt made"
         for attempt in range(3):
             self._pace()
             try:
-                r = httpx.post(f"{self.cfg.llm_base_url}/chat/completions", json=payload, headers=headers, timeout=90)
-            except httpx.HTTPError:
+                r = httpx.post(url, json=payload, headers=headers, timeout=90)
+            except httpx.HTTPError as exc:
+                last = f"network error: {type(exc).__name__}: {str(exc)[:200]}"
+                print(f"LLM attempt {attempt + 1}: {last} (url={url})", flush=True)
                 self.sleep(2 ** attempt * 3)
                 continue
             if r.status_code == 429 or r.status_code >= 500:
+                last = f"HTTP {r.status_code}: {r.text[:300]}"
+                print(f"LLM attempt {attempt + 1}: {last}", flush=True)
                 retry_after = r.headers.get("retry-after", "")
                 self.sleep(min(60, int(retry_after)) if retry_after.isdigit() else 2 ** attempt * 5)
                 continue
             if r.status_code >= 400:
-                raise ProviderUnavailable(f"provider returned HTTP {r.status_code} "
-                                          "(if this is 400, try LLM_JSON_MODE=0)")
+                print(f"LLM HTTP {r.status_code}: {r.text[:500]}", flush=True)
+                raise ProviderUnavailable(f"provider returned HTTP {r.status_code}: {r.text[:200]}")
             body = r.json()
             try:
                 return body["choices"][0]["message"]["content"] or "", body.get("usage") or {}
             except (KeyError, IndexError, TypeError) as exc:
+                print(f"LLM unexpected response shape: {r.text[:300]}", flush=True)
                 raise ProviderUnavailable("unexpected response shape from provider") from exc
-        raise ProviderUnavailable("provider unreachable or rate-limited after retries")
+        raise ProviderUnavailable(f"provider failed after retries; last: {last}")
 
     def complete_json(self, *, task: str, system: str, user: str, schema: type[BaseModel]) -> BaseModel:
         messages = [{"role": "system", "content": system}, {"role": "user", "content": user}]
