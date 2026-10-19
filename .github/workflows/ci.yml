@@ -45,7 +45,7 @@ jobs:
       NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder
     steps:
       - uses: actions/checkout@v4
-      - run: ./scripts/migrate.sh
+      - run: bash scripts/migrate.sh
       - uses: actions/setup-node@v4
         with:
           node-version: 22

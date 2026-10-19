@@ -1,7 +1,5 @@
-// web/src/app/layout.tsx
 import type { Metadata } from "next";
 import Link from "next/link";
-// @ts-expect-error Next.js processes this global stylesheet import.
 import "./globals.css";
 import { SITE_NAME, SITE_URL } from "@/lib/format";
 
