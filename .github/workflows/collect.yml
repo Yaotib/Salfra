@@ -23,10 +23,9 @@ jobs:
         working-directory: worker       
         env:
           ENV: prod
-          LLM_JSON_MODE: "1"
+          LLM_JSON_MODE: "0"
           LLM_MIN_INTERVAL_SECONDS: "20"
           MAX_ARTICLES_PER_RUN: "6"
-          LLM_REASONING_EFFORT: "low"
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           USER_AGENT: ${{ secrets.USER_AGENT }}
           LLM_BASE_URL: ${{ secrets.LLM_BASE_URL }}
