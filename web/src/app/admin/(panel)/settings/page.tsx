@@ -93,9 +93,7 @@ export default async function Settings({
   );
 
   const publishingPaused = isEnabled(settings.publishing_paused);
-  const collectionPaused = isEnabled(settings.collection_paused);
-  const autoPublishEnabled = isEnabled(settings.auto_publish_enabled);
-
+  
   return (
     <main className="mx-auto w-full max-w-5xl space-y-7 pb-10">
       <header className="border-b border-gray-200 pb-6">

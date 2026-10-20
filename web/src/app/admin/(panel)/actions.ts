@@ -1,6 +1,5 @@
 // web/src/app/admin/(panel)/actions.ts
 "use server";
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { randomBytes } from "node:crypto";
 import postgres from "postgres";
 import { revalidatePath } from "next/cache";

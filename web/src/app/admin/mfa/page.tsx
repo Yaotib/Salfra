@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -210,7 +209,7 @@ export default function MfaPage() {
 
               <div className="mt-4 rounded-xl border border-gray-200 p-4">
                 <p className="text-sm font-semibold text-gray-900">
-                  Can't scan the code?
+                  Can&apos;t scan the code?
                 </p>
                 <p className="mt-1 text-sm leading-5 text-gray-600">
                   You can enter the setup key manually in your authenticator
