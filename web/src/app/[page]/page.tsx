@@ -1,8 +1,8 @@
-
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { listSources } from "@/lib/queries";
 import { INFO_SLUGS, PAGES } from "@/lib/pages";
+import type { ReactNode } from "react";
 
 export const dynamicParams = false;
 export const revalidate = 3600;
@@ -51,6 +51,50 @@ function PageHeader({
       )}
     </header>
   );
+}
+
+function Body({ paragraphs }: { paragraphs: string[] }) {
+  const out: ReactNode[] = [];
+  let list: string[] = [];
+
+  const flush = () => {
+    if (list.length) {
+      out.push(
+        <ul key={`ul-${out.length}`} className="list-disc space-y-2 pl-6">
+          {list.map((item, i) => (
+            <li key={i}>{item}</li>
+          ))}
+        </ul>
+      );
+      list = [];
+    }
+  };
+
+  paragraphs.forEach((text, index) => {
+    if (text.startsWith("- ")) {
+      list.push(text.slice(2));
+      return;
+    }
+
+    flush();
+
+    out.push(
+      text.startsWith("## ") ? (
+        <h2
+          key={index}
+          className="pt-2 text-lg font-bold tracking-tight text-gray-950"
+        >
+          {text.slice(3)}
+        </h2>
+      ) : (
+        <p key={index}>{text}</p>
+      )
+    );
+  });
+
+  flush();
+
+  return <>{out}</>;
 }
 
 export default async function Info({ params }: P) {
@@ -169,9 +213,7 @@ export default async function Info({ params }: P) {
 
       <div className="max-w-3xl px-5 py-6 sm:px-6 sm:py-8">
         <div className="space-y-5 text-sm leading-7 text-gray-700 sm:text-base sm:leading-8">
-          {page.paragraphs.map((paragraph, index) => (
-            <p key={index}>{paragraph}</p>
-          ))}
+          <Body paragraphs={page.paragraphs} />
         </div>
       </div>
     </article>
