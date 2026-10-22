@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
 import { sql } from "@/lib/db";
 import { updateSetting } from "../actions";
+import { FeedbackToast } from "@/components/FeedbackToast";
 
 export const dynamic = "force-dynamic";
 const BOOLS: [string, string][] = [["publishing_paused", "Kill switch: pause ALL publishing"], ["collection_paused", "Pause collection"], ["auto_publish_enabled", "Auto-publish low-risk stories (leave OFF until the pilot passes)"]];
@@ -17,7 +18,7 @@ export default async function Settings({ searchParams }: { searchParams: Promise
   return (
     <>
       <h1>Settings (owner only)</h1>
-      {msg && <p role="status" className="notice">{msg}</p>}
+      <FeedbackToast initialMessage={msg} />
       <h2>Switches</h2>
       {BOOLS.map(([k, label]) => (
         <form key={k} action={updateSetting}><input type="hidden" name="key" value={k} /><input type="hidden" name="value" value={String(!s[k])} />

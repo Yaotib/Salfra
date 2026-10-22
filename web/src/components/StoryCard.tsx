@@ -9,9 +9,9 @@ export function StoryCard({ s }: { s: StoryCardData }) {
     <article className="card">
       <ul className="tags" aria-label="Topics">
         {s.categories.map((c) => <li key={c} className="tag">{c}</li>)}
-        {regionTag && <li className="tag">{regionTag}</li>}
-        {s.status === "updated" && <li className="badge">Updated</li>}
-        {s.is_limited && <li className="badge">Limited entry</li>}
+        {regionTag && <li className={`tag tag-${s.region}`}>{regionTag}</li>}
+        {s.status === "updated" && <li className="badge badge-updated">Updated</li>}
+        {s.is_limited && <li className="badge badge-limited">Limited entry</li>}
       </ul>
       <h2><Link href={`/stories/${s.slug}`}>{s.headline}</Link></h2>
       <p>{s.card_summary}</p>

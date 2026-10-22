@@ -3,6 +3,7 @@
 import { sql } from "@/lib/db";
 import { formatTime } from "@/lib/format";
 import { reopenArticle, retryJob } from "../actions";
+import { FeedbackToast } from "@/components/FeedbackToast";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +20,7 @@ export default async function Jobs({ searchParams }: { searchParams: Promise<{ m
   return (
     <>
       <h1>Jobs and items</h1>
-      {msg && <p role="status" className="notice">{msg}</p>}
+      <FeedbackToast initialMessage={msg} />
       <h2>Collection runs</h2>
       <table><thead><tr><th>Started</th><th>Finished</th><th>Status</th><th>Trigger</th><th>Stats / error</th></tr></thead><tbody>
         {runs.map((r, i) => (<tr key={i}><td>{formatTime(r.started_at)}</td><td>{r.finished_at ? formatTime(r.finished_at) : "-"}</td><td>{r.status}</td><td>{r.trigger}</td><td>{r.error ?? JSON.stringify(r.stats)}</td></tr>))}

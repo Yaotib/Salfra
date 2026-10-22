@@ -1,7 +1,21 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Plus_Jakarta_Sans, Newsreader } from "next/font/google";
 import "./globals.css";
 import { SITE_NAME, SITE_URL } from "@/lib/format";
+
+const jakarta = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  variable: "--font-jakarta",
+  display: "swap",
+});
+
+const newsreader = Newsreader({
+  subsets: ["latin"],
+  variable: "--font-newsreader",
+  style: ["normal", "italic"],
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -11,18 +25,30 @@ export const metadata: Metadata = {
 };
 
 const NAV = [
-  ["/stories", "Latest"], ["/category/ai-news", "AI News"], ["/category/global-tech", "Global Tech"],
-  ["/category/product-releases", "Product Releases"], ["/category/african-tech", "African Tech"], ["/search", "Search"],
+  ["/stories", "Latest"],
+  ["/category/ai-news", "AI News"],
+  ["/category/global-tech", "Global Tech"],
+  ["/category/product-releases", "Product Releases"],
+  ["/category/african-tech", "African Tech"],
+  ["/search", "Search"],
 ];
+
 const FOOTER = [
-  ["/about", "About"], ["/methodology", "Methodology and AI disclosure"], ["/corrections", "Corrections"],
-  ["/sources", "Sources"], ["/contact", "Contact"], ["/privacy", "Privacy"], ["/terms", "Terms"],
-  ["/region/ghana", "Ghana"], ["/region/africa", "Africa"], ["/feed.xml", "RSS"],
+  ["/about", "About"],
+  ["/methodology", "Methodology and AI disclosure"],
+  ["/corrections", "Corrections"],
+  ["/sources", "Sources"],
+  ["/contact", "Contact"],
+  ["/privacy", "Privacy"],
+  ["/terms", "Terms"],
+  ["/region/ghana", "Ghana"],
+  ["/region/africa", "Africa"],
+  ["/feed.xml", "RSS"],
 ];
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${jakarta.variable} ${newsreader.variable}`}>
       <body>
         <a className="skip" href="#main">Skip to content</a>
         <header className="site">

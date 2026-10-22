@@ -5,6 +5,7 @@ import { sql } from "@/lib/db";
 import { formatTime } from "@/lib/format";
 import { CATEGORIES } from "@/lib/types";
 import { applyProposal, dismissAttention, mergeStories, rejectProposal, requestRegeneration, saveEdit, setStoryStatus, splitArticle } from "../../actions";
+import { FeedbackToast } from "@/components/FeedbackToast";
 
 export const dynamic = "force-dynamic";
 const UUID = /^[0-9a-f-]{36}$/i;
@@ -33,7 +34,7 @@ export default async function StoryEditor({ params, searchParams }: {
   return (
     <>
       <h1>{s.headline}</h1>
-      {msg && <p role="status" className="notice">{msg}</p>}
+      <FeedbackToast initialMessage={msg} />
       <p>Status: <strong>{s.status}</strong> · Evidence: {s.evidence_label} · Region: {s.region} · Flags: {s.risk_flags.join(", ") || "none"}
         {s.needs_attention && <> · <strong>Needs attention: {s.needs_attention}</strong></>}</p>
       {live && <p><a href={`/stories/${s.slug}`}>View public page</a></p>}
