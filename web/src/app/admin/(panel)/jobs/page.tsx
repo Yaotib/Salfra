@@ -29,7 +29,11 @@ function statusStyle(status: string) {
   }
 }
 
-function StatusBadge({ status }: { status: string | null | undefined }) {
+function StatusBadge({
+  status,
+}: {
+  status: string | null | undefined;
+}) {
   const value = status || "unknown";
 
   return (
@@ -58,8 +62,12 @@ function SectionHeader({
         <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-blue-700">
           {eyebrow}
         </p>
-        <h2 className="mt-1 text-base font-bold text-gray-950">{title}</h2>
-        <p className="mt-1 text-sm leading-5 text-gray-500">{description}</p>
+        <h2 className="mt-1 text-base font-bold text-gray-950">
+          {title}
+        </h2>
+        <p className="mt-1 text-sm leading-5 text-gray-500">
+          {description}
+        </p>
       </div>
 
       {count !== undefined && (
@@ -78,7 +86,9 @@ export default async function Jobs({
 }) {
   const { msg, state } = await searchParams;
 
-  const show = ITEM_STATES.includes(state as (typeof ITEM_STATES)[number])
+  const show = ITEM_STATES.includes(
+    state as (typeof ITEM_STATES)[number],
+  )
     ? state!
     : "held";
 
@@ -113,11 +123,17 @@ export default async function Jobs({
     `,
   ]);
 
-  const failedJobs = jobs.filter((job) => job.status === "failed").length;
-  const activeRuns = runs.filter(
-    (run) => run.status === "running"
+  const failedJobs = jobs.filter(
+    (job) => job.status === "failed",
   ).length;
-  const runErrors = runs.filter((run) => Boolean(run.error)).length;
+
+  const activeRuns = runs.filter(
+    (run) => run.status === "running",
+  ).length;
+
+  const runErrors = runs.filter(
+    (run) => Boolean(run.error),
+  ).length;
 
   return (
     <main className="mx-auto w-full max-w-7xl space-y-7 pb-10">
@@ -132,13 +148,14 @@ export default async function Jobs({
               Jobs and items
             </h1>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-500">
-              Monitor collection runs, inspect background job failures, and
-              review articles that need attention.
+              Monitor collection runs, inspect background job failures,
+              and review articles that need attention.
             </p>
           </div>
 
           <span className="inline-flex items-center gap-2 self-start rounded-full border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-600 sm:self-auto">
             <span
+              aria-hidden="true"
               className={`h-2 w-2 rounded-full ${
                 failedJobs > 0 || runErrors > 0
                   ? "bg-red-500"
@@ -258,7 +275,8 @@ export default async function Jobs({
                         Started {formatTime(run.started_at)}
                       </span>
                       <span className="font-medium text-blue-700">
-                        View details <span aria-hidden="true">⌄</span>
+                        View details{" "}
+                        <span aria-hidden="true">⌄</span>
                       </span>
                     </div>
                   </div>
@@ -417,7 +435,10 @@ export default async function Jobs({
           count={items.length}
         />
 
-        <div className="flex flex-wrap gap-2 border-b border-gray-200 px-5 py-4 sm:px-6">
+        <nav
+          aria-label="Collected item state"
+          className="flex flex-wrap gap-2 border-b border-gray-200 px-5 py-4 sm:px-6"
+        >
           {ITEM_STATES.map((itemState) => {
             const active = itemState === show;
 
@@ -441,7 +462,7 @@ export default async function Jobs({
               </a>
             );
           })}
-        </div>
+        </nav>
 
         {items.length === 0 ? (
           <div className="px-6 py-14 text-center">
@@ -477,11 +498,19 @@ export default async function Jobs({
                       <span className="font-semibold text-gray-700">
                         {article.publisher || "Unknown publisher"}
                       </span>
-                      <span aria-hidden="true" className="text-gray-300">
+                      <span
+                        aria-hidden="true"
+                        className="text-gray-300"
+                      >
                         ·
                       </span>
-                      <span>{formatTime(article.collected_at)}</span>
-                      <span aria-hidden="true" className="text-gray-300">
+                      <span>
+                        {formatTime(article.collected_at)}
+                      </span>
+                      <span
+                        aria-hidden="true"
+                        className="text-gray-300"
+                      >
                         ·
                       </span>
                       <span>
@@ -526,7 +555,8 @@ export default async function Jobs({
                       htmlFor={`reopen-reason-${article.id}`}
                       className="sr-only"
                     >
-                      Reason for reopening {article.title || "article"}
+                      Reason for reopening{" "}
+                      {article.title || "article"}
                     </label>
 
                     <input
@@ -571,3 +601,4 @@ export default async function Jobs({
     </main>
   );
 }
+

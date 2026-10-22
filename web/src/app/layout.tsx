@@ -1,49 +1,25 @@
 
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Urbanist } from "next/font/google";
 import "./globals.css";
 import { SITE_NAME, SITE_URL } from "@/lib/format";
-import MobileMenu from "@/components/MobileMenu";
-
-const urbanist = Urbanist({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
-  display: "swap",
-  variable: "--font-urbanist",
-});
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: {
-    default: `${SITE_NAME}: AI and technology news, summarised`,
-    template: `%s | ${SITE_NAME}`,
-  },
-  description:
-    "Curated AI and technology news, including Ghana and Africa. AI-generated summaries that link to the original reporting.",
-  alternates: {
-    types: {
-      "application/rss+xml": "/feed.xml",
-    },
-  },
-  robots: {
-    index: true,
-    follow: true,
-  },
+  title: { default: `${SITE_NAME}: AI and technology news, summarised`, template: `%s · ${SITE_NAME}` },
+  description: "Curated AI and technology news, including Ghana and Africa. AI-generated summaries that link to the original reporting.",
+  alternates: { types: { "application/rss+xml": "/feed.xml" } },
 };
 
+const NAV = [
+  ["/stories", "Latest"], ["/category/ai-news", "AI News"], ["/category/global-tech", "Global Tech"],
+  ["/category/product-releases", "Product Releases"], ["/category/african-tech", "African Tech"], ["/search", "Search"],
+];
 const FOOTER = [
-  ["/about", "About"],
-  ["/methodology", "Methodology & AI disclosure"],
-  ["/corrections", "Corrections"],
-  ["/sources", "Sources"],
-  ["/contact", "Contact"],
-  ["/privacy", "Privacy"],
-  ["/terms", "Terms"],
-  ["/region/ghana", "Ghana"],
-  ["/region/africa", "Africa"],
-  ["/feed.xml", "RSS"],
-] as const;
+  ["/about", "About"], ["/methodology", "Methodology and AI disclosure"], ["/corrections", "Corrections"],
+  ["/sources", "Sources"], ["/contact", "Contact"], ["/privacy", "Privacy"], ["/terms", "Terms"],
+  ["/region/ghana", "Ghana"], ["/region/africa", "Africa"], ["/feed.xml", "RSS"],
+];
 
 export default function RootLayout({
   children,
@@ -51,37 +27,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={urbanist.variable}>
-      <body className="min-h-screen overflow-x-clip bg-white font-sans text-gray-950 antialiased">
-        <a
-          className="skip focus-visible:z-[100] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4"
-          href="#main"
-        >
-          Skip to content
-        </a>
-
-        <header className="sticky top-0 z-50 border-b border-gray-200 bg-white/95 backdrop-blur">
-          <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="flex min-h-16 items-center justify-between py-2 sm:min-h-[4.5rem]">
-              <Link
-                href="/"
-                className="group flex min-w-0 shrink-0 flex-col no-underline hover:no-underline"
-                aria-label={`${SITE_NAME} home`}
-              >
-                <span className="text-xl font-extrabold tracking-tight text-gray-950 transition-colors group-hover:text-blue-700 sm:text-2xl">
-                  {SITE_NAME}
-                  <span className="text-blue-700">.</span>
-                </span>
-
-                <span className="mt-0.5 text-[9px] font-semibold uppercase tracking-[0.16em] text-gray-500 sm:text-[10px] sm:tracking-[0.2em]">
-                  AI &amp; technology briefing
-                </span>
-              </Link>
-
-              <div className="md:hidden">
-                <MobileMenu />
-              </div>
-            </div>
+    <html lang="en">
+      <body>
+        <a className="skip" href="#main">Skip to content</a>
+        <header className="site">
+          <div className="wrap">
+            <Link className="brand" href="/">{SITE_NAME}</Link>
+            <nav className="main" aria-label="Main">
+              {NAV.map(([href, label]) => <Link key={href} href={href}>{label}</Link>)}
+            </nav>
           </div>
         </header>
 
