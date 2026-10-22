@@ -33,9 +33,6 @@ function back(path: string, msg: string): never {
   redirect(`${path}${path.includes("?") ? "&" : "?"}msg=${encodeURIComponent(msg)}`);
 }
 
-const searchText = "(${wh} || ' ' || ${why} || ' ' || array_to_string(entities, ' '))";
-void searchText;
-
 // ---------- stories ----------
 export async function setStoryStatus(fd: FormData) {
   const admin = await requireAdmin(["editor"]);

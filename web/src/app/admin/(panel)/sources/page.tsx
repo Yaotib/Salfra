@@ -3,6 +3,7 @@
 import { sql } from "@/lib/db";
 import { formatTime } from "@/lib/format";
 import { saveSource, setSourceStatus } from "../actions";
+import { FeedbackToast } from "@/components/FeedbackToast";
 
 export const dynamic = "force-dynamic";
 
@@ -34,7 +35,7 @@ export default async function Sources({ searchParams }: { searchParams: Promise<
   return (
     <>
       <h1>Sources</h1>
-      {msg && <p role="status" className="notice">{msg}</p>}
+      <FeedbackToast initialMessage={msg} />
       <p className="meta">A source cannot be active until a terms review date is recorded. Access denials pause a source immediately, and resuming it is your decision.</p>
       {sources.map((s) => (
         <details key={s.id}><summary><strong>{s.name}</strong> · {s.status}{s.paused_reason && <> · paused: {s.paused_reason}</>} · failures {s.failure_count} · last success {s.last_success_at ? formatTime(s.last_success_at) : "never"}</summary>
