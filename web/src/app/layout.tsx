@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Plus_Jakarta_Sans, Newsreader } from "next/font/google";
 import "./globals.css";
 import { SITE_NAME, SITE_URL } from "@/lib/format";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -46,17 +47,36 @@ const FOOTER = [
   ["/feed.xml", "RSS"],
 ];
 
+const themeScript = `(function() {
+  try {
+    var saved = localStorage.getItem('salfra-theme');
+    var theme = saved;
+    if (!theme || (theme !== 'light' && theme !== 'dark' && theme !== 'eye-protection')) {
+      theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    document.documentElement.setAttribute('data-theme', theme);
+  } catch (err) {
+    console.warn('Initial theme application degraded:', err);
+  }
+})();`;
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${jakarta.variable} ${newsreader.variable}`}>
+    <html lang="en" suppressHydrationWarning className={`${jakarta.variable} ${newsreader.variable}`}>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
       <body>
         <a className="skip" href="#main">Skip to content</a>
         <header className="site">
           <div className="wrap">
             <Link className="brand" href="/">{SITE_NAME}</Link>
-            <nav className="main" aria-label="Main">
-              {NAV.map(([href, label]) => <Link key={href} href={href}>{label}</Link>)}
-            </nav>
+            <div className="header-nav-wrap">
+              <nav className="main" aria-label="Main">
+                {NAV.map(([href, label]) => <Link key={href} href={href}>{label}</Link>)}
+              </nav>
+              <ThemeToggle />
+            </div>
           </div>
         </header>
         <main id="main" className="wrap">{children}</main>
