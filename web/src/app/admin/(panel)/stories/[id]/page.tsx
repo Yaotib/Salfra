@@ -342,28 +342,65 @@ export default async function StoryEditor({
       <section><h2>Edit</h2>
         <form action={saveEdit}>
           <input type="hidden" name="id" value={id} />
-
-          <div>
-            <FieldLabel htmlFor="merge-target">
-              Target story ID or slug
-            </FieldLabel>
-            <TextInput
-              id="merge-target"
-              name="target"
-              placeholder="Paste the target story ID or slug"
-              required
-            />
-          </div>
-
-          <div className="rounded-lg border border-red-200 bg-red-50 p-3">
-            <p className="text-xs leading-5 text-red-800">
-              Merging can affect story relationships and publication records.
-              Confirm that the target is correct before proceeding.
-            </p>
-          </div>
-
-          <ActionButton variant="danger">Merge into target story</ActionButton>
+          <p><label>Headline<input type="text" name="headline" defaultValue={s.headline} /></label></p>
+          <p><label>Card summary (2-3 sentences)<textarea name="card_summary" defaultValue={s.card_summary} /></label></p>
+          <p><label>What happened<textarea name="what_happened" defaultValue={body.what_happened ?? ""} /></label></p>
+          <p><label>Why it matters<textarea name="why_it_matters" defaultValue={body.why_it_matters ?? ""} /></label></p>
+          <p><label>What remains uncertain<textarea name="uncertain" defaultValue={body.uncertain ?? ""} /></label></p>
+          <fieldset><legend>Categories</legend>
+            {CATEGORIES.map((c) => (<label key={c.slug}><input type="checkbox" name="categories" value={c.name} defaultChecked={categories.includes(c.name)} /> {c.name} </label>))}
+          </fieldset>
+          <fieldset><legend>Featured Media &amp; Attribution</legend>
+            <p><label>Media URL (Image or Video)<input type="url" name="media_url" defaultValue={s.media_url ?? ""} placeholder="https://..." /></label></p>
+            <p><label>Media Type
+              <select name="media_type" defaultValue={s.media_type ?? ""}>
+                <option value="">None</option>
+                <option value="image">Image</option>
+                <option value="video">Video</option>
+              </select>
+            </label></p>
+            <p><label>Media Source / Credit Name<input type="text" name="media_source_name" defaultValue={s.media_source_name ?? ""} placeholder="e.g. Reuters, TechCrunch" /></label></p>
+            <p><label>Media Source URL<input type="url" name="media_source_url" defaultValue={s.media_source_url ?? ""} placeholder="https://..." /></label></p>
+            <p><label>Alternative Text (Accessibility)<input type="text" name="media_alt_text" defaultValue={s.media_alt_text ?? ""} /></label></p>
+            <p><label>License / Rights Note<input type="text" name="media_license" defaultValue={s.media_license ?? ""} placeholder="e.g. Editorial use, CC BY 4.0" /></label></p>
+          </fieldset>
+          <p><label>Region <select name="region" defaultValue={s.region}><option>global</option><option>africa</option><option>ghana</option></select></label></p>
+          <p><label><input type="checkbox" name="material" /> Material correction (shows a public notice{live ? " and marks the story Updated" : ""})</label></p>
+          <p><label>Public correction note (required when material)<input type="text" name="correction_note" /></label></p>
+          <button>Save as new version</button>
         </form>
+      </section>
+
+      <section><h2>Evidence: linked sources</h2>
+        <table><thead><tr><th>Publisher</th><th>Role</th><th>Article</th><th>Excerpt used</th><th>Link</th><th></th></tr></thead><tbody>
+          {articles.map((a) => (
+            <tr key={a.id}>
+              <td>{a.publisher}</td><td>{a.is_syndicated ? "syndicated" : a.role}</td>
+              <td><a href={a.canonical_url} target="_blank" rel="noopener noreferrer">{a.title}</a><br />
+                <span className="meta">{a.published_at ? formatTime(a.published_at) : "no date"}{a.source_changed_at && <strong> · changed at source {formatTime(a.source_changed_at)}</strong>}</span></td>
+              <td>{a.excerpt}</td><td>{a.link_status ?? "unchecked"}</td>
+              <td>{articles.length > 1 && (<form action={splitArticle}><input type="hidden" name="id" value={id} /><input type="hidden" name="article_id" value={a.id} /><button>Split out</button></form>)}</td>
+            </tr>
+          ))}
+        </tbody></table>
+      </section>
+
+      <section><h2>Extracted claims (current version)</h2>
+        <table><thead><tr><th>Claim</th><th>Supporting quote</th><th>Source</th></tr></thead><tbody>
+          {claims.map((c: any, i: number) => (<tr key={i}><td>{c.text}</td><td>{c.quote}</td><td>{c.publisher}</td></tr>))}
+        </tbody></table>
+        {!claims.length && <p className="meta">No claims stored for this version (for example after a manual edit with no prior claims).</p>}
+      </section>
+
+      <section><h2>Merge this story into another</h2>
+        <form action={mergeStories}><input type="hidden" name="id" value={id} />
+          <label>Target story id or slug <input type="text" name="target" /></label> <button className="danger">Merge</button></form>
+      </section>
+
+      <section><h2>Versions</h2>
+        <ul>{versions.map((v) => <li key={v.id}>v{v.version} · {v.status} · {v.is_manual ? "manual" : "AI"} · {v.created_by} · {formatTime(v.created_at)} · {v.reason}</li>)}</ul>
+        <h2>Public corrections</h2>
+        <ul>{corrections.map((c, i) => <li key={i}>{formatTime(c.created_at)}: {c.note} ({c.created_by})</li>)}</ul>
       </section>
 
       <Section

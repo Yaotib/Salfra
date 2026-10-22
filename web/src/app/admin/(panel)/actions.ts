@@ -62,21 +62,34 @@ export async function saveEdit(fd: FormData) {
   const cats = CATEGORIES.map((c) => c.name).filter((n) => fd.getAll("categories").includes(n));
   const region = ["global", "africa", "ghana"].includes(str(fd, "region")) ? str(fd, "region") : "global";
   const note = str(fd, "correction_note"), material = fd.get("material") === "on";
+
+  const mediaUrl = str(fd, "media_url") || null;
+  const rawMediaType = str(fd, "media_type");
+  const mediaType = ["image", "video"].includes(rawMediaType) ? rawMediaType : null;
+  const mediaSourceName = str(fd, "media_source_name") || null;
+  const mediaSourceUrl = str(fd, "media_source_url") || null;
+  const mediaAltText = str(fd, "media_alt_text") || null;
+  const mediaLicense = str(fd, "media_license") || null;
+
   const msg = await attempt(async () => {
     if (headline.length < 10 || headline.length > 140) throw new Error("Headline must be 10-140 characters");
     if (card.length < 40 || card.length > 450) throw new Error("Card summary must be 40-450 characters");
     if (material && note.length < 10) throw new Error("A material change needs a public correction note");
     await sql.begin(async (tx) => {
-      const [s] = await tx`select headline, card_summary, body, categories, region, status from stories where id = ${id} for update`;
+      const [s] = await tx`select headline, card_summary, body, categories, region, status, media_url from stories where id = ${id} for update`;
       const [prev] = await tx`select claims from story_versions where story_id = ${id} and status = 'current'`;
       const body = { ...(s.body ?? {}), what_happened: str(fd, "what_happened"), why_it_matters: str(fd, "why_it_matters"), uncertain: str(fd, "uncertain") };
       await tx`update story_versions set status = 'superseded' where story_id = ${id} and status = 'current'`;
       const [{ v }] = await tx`select coalesce(max(version), 0) + 1 as v from story_versions where story_id = ${id}`;
-      await tx`insert into story_versions (story_id, version, status, headline, card_summary, body, claims, reason, is_manual, created_by)
+      await tx`insert into story_versions (story_id, version, status, headline, card_summary, body, claims, reason, is_manual, created_by,
+                                           media_url, media_type, media_source_name, media_source_url, media_alt_text, media_license)
         values (${id}, ${v}, 'current', ${headline}, ${card}, ${J(body)}, ${J(prev?.claims ?? [])},
-                ${note || "manual edit"}, true, ${admin.email})`;
+                ${note || "manual edit"}, true, ${admin.email},
+                ${mediaUrl}, ${mediaType}, ${mediaSourceName}, ${mediaSourceUrl}, ${mediaAltText}, ${mediaLicense})`;
       await tx`update stories set headline = ${headline}, card_summary = ${card}, body = ${J(body)},
         categories = ${tx.array(cats)}, region = ${region},
+        media_url = ${mediaUrl}, media_type = ${mediaType}, media_source_name = ${mediaSourceName},
+        media_source_url = ${mediaSourceUrl}, media_alt_text = ${mediaAltText}, media_license = ${mediaLicense},
         search_text = ${`${body.what_happened} ${body.why_it_matters}`} || ' ' || array_to_string(entities, ' ')
         where id = ${id}`;
       if (material && ["published", "updated"].includes(s.status)) {
@@ -84,7 +97,8 @@ export async function saveEdit(fd: FormData) {
       }
       if (note) await tx`insert into story_corrections (story_id, note, created_by) values (${id}, ${note}, ${admin.email})`;
       await audit(tx as unknown as DB, admin.email, "story.edited", "story", id,
-        { headline: s.headline, card_summary: s.card_summary, body: s.body }, { headline, card_summary: card, body }, note || undefined);
+        { headline: s.headline, card_summary: s.card_summary, body: s.body, media_url: s.media_url },
+        { headline, card_summary: card, body, media_url: mediaUrl }, note || undefined);
     });
     return "Saved as a new version.";
   });

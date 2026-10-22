@@ -49,7 +49,31 @@ def process_article(conn, cfg, llm, a, freshness_hours: int, *, fetch_text=fetch
         link_article(conn, synd, a, is_syndicated=True, adds_new=False, correction_hint=hint)
         return "grouped_syndicated"
 
-    text = fetch_text(a["canonical_url"], a["title"], cfg) if a["allow_fulltext"] else None
+    page_media: dict = {}
+    try:
+        text = fetch_text(a["canonical_url"], a["title"], cfg, out_media=page_media) if a["allow_fulltext"] else None
+    except TypeError:
+        text = fetch_text(a["canonical_url"], a["title"], cfg) if a["allow_fulltext"] else None
+
+    if page_media.get("media_url") and not a.get("media_url"):
+        conn.execute(
+            """update source_articles set
+                 media_url = %s, media_type = %s, media_source_name = %s,
+                 media_source_url = %s, media_alt_text = %s, media_license = %s
+               where id = %s""",
+            (page_media["media_url"], page_media["media_type"],
+             page_media.get("media_source_name") or a.get("publisher"),
+             page_media.get("media_source_url") or a.get("canonical_url"),
+             page_media.get("media_alt_text") or a.get("title"),
+             page_media.get("media_license"), a["id"]))
+        a = dict(a)
+        a["media_url"] = page_media["media_url"]
+        a["media_type"] = page_media["media_type"]
+        a["media_source_name"] = page_media.get("media_source_name") or a.get("publisher")
+        a["media_source_url"] = page_media.get("media_source_url") or a.get("canonical_url")
+        a["media_alt_text"] = page_media.get("media_alt_text") or a.get("title")
+        a["media_license"] = page_media.get("media_license")
+
     suspicious = bool(INJECTION_RE.search(" ".join(filter(None, [a["title"], a["excerpt"], text]))))
 
     cached = (a["analysis"] or {}).get("relevance")

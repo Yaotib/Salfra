@@ -62,6 +62,20 @@ def link_article(conn, story_id, a, *, is_syndicated: bool, adds_new: bool, corr
                    values ('regenerate_summary', %s, %s, 'pipeline') on conflict (idempotency_key) do nothing""",
                 (Jsonb({"story_id": str(story_id)}), f"regen:{story_id}:{a['id']}"))
         refresh_label(conn, story_id)
+        if a.get("media_url"):
+            conn.execute(
+                """update stories set
+                     media_url = coalesce(media_url, %s),
+                     media_type = coalesce(media_type, %s),
+                     media_source_name = coalesce(media_source_name, %s),
+                     media_source_url = coalesce(media_source_url, %s),
+                     media_alt_text = coalesce(media_alt_text, %s),
+                     media_license = coalesce(media_license, %s)
+                   where id = %s and media_url is null""",
+                (a.get("media_url"), a.get("media_type"),
+                 a.get("media_source_name") or a.get("publisher"),
+                 a.get("media_source_url") or a.get("canonical_url"),
+                 a.get("media_alt_text"), a.get("media_license"), story_id))
         audit(conn, "pipeline", "story.article_linked", "story", str(story_id), None,
               {"article_id": str(a["id"]), "role": role, "syndicated": is_syndicated})
 
@@ -69,22 +83,34 @@ def link_article(conn, story_id, a, *, is_syndicated: bool, adds_new: bool, corr
 def create_story(conn, *, article, rel, summary, evidence, limited: bool, flags, priority, follow_up_of=None, model=None):
     body = {"what_happened": summary.what_happened, "why_it_matters": summary.why_it_matters,
             "uncertain": summary.uncertain, "conflicting": summary.conflicting_reports, "limited": limited}
-    search_text = " ".join([summary.what_happened, summary.why_it_matters, " ".join(rel.entities), article["publisher"]])
+    search_text = " ".join([summary.what_happened, summary.why_it_matters, " ".join(rel.entities), article.get("publisher") or ""])
     with conn.transaction():
         sid = conn.execute(
             """insert into stories (slug, headline, card_summary, body, search_text, categories, region, story_type,
-                                    is_limited, risk_flags, review_priority, entities, entity_keys, first_reported_at)
-               values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) returning id""",
+                                    is_limited, risk_flags, review_priority, entities, entity_keys, first_reported_at,
+                                    media_url, media_type, media_source_name, media_source_url, media_alt_text, media_license)
+               values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) returning id""",
             (make_slug(summary.headline), summary.headline, summary.card_summary, Jsonb(body), search_text,
              final_categories(rel), rel.region, rel.story_type, limited, flags, priority, rel.entities,
-             [e.lower() for e in rel.entities], article["published_at"] or article["collected_at"])).fetchone()["id"]
+             [e.lower() for e in rel.entities], article["published_at"] or article["collected_at"],
+             article.get("media_url"), article.get("media_type"),
+             article.get("media_source_name") or article.get("publisher"),
+             article.get("media_source_url") or article.get("canonical_url"),
+             article.get("media_alt_text") or summary.headline,
+             article.get("media_license"))).fetchone()["id"]
         conn.execute("insert into story_articles (story_id, article_id, role) values (%s, %s, %s)",
                      (sid, article["id"], "primary" if article["is_primary"] else "independent"))
         conn.execute(
             """insert into story_versions (story_id, version, status, headline, card_summary, body, claims, reason,
-                                           created_by, model)
-               values (%s, 1, 'current', %s, %s, %s, %s, 'initial draft', 'pipeline', %s)""",
-            (sid, summary.headline, summary.card_summary, Jsonb(body), Jsonb(claims_payload(summary, evidence)), model))
+                                           created_by, model,
+                                           media_url, media_type, media_source_name, media_source_url, media_alt_text, media_license)
+               values (%s, 1, 'current', %s, %s, %s, %s, 'initial draft', 'pipeline', %s, %s, %s, %s, %s, %s, %s)""",
+            (sid, summary.headline, summary.card_summary, Jsonb(body), Jsonb(claims_payload(summary, evidence)), model,
+             article.get("media_url"), article.get("media_type"),
+             article.get("media_source_name") or article.get("publisher"),
+             article.get("media_source_url") or article.get("canonical_url"),
+             article.get("media_alt_text") or summary.headline,
+             article.get("media_license")))
         conn.execute("update source_articles set state = 'grouped' where id = %s", (article["id"],))
         if follow_up_of:
             conn.execute("insert into story_links (from_story, to_story, link_type) values (%s, %s, 'follow_up')",

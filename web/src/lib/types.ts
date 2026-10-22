@@ -3,6 +3,9 @@ export type StoryCardData = {
   id: string; slug: string; headline: string; card_summary: string; categories: string[];
   region: string; evidence_label: string; is_limited: boolean; status: string;
   first_reported_at: Date; last_material_update_at: Date | null; publishers: string[];
+  media_url: string | null; media_type: "image" | "video" | null;
+  media_source_name: string | null; media_source_url: string | null;
+  media_alt_text: string | null; media_license: string | null;
 };
 export type StoryBody = { what_happened?: string; why_it_matters?: string; uncertain?: string; conflicting?: boolean; limited?: boolean };
 export type StoryFull = StoryCardData & {
