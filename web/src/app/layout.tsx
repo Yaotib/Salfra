@@ -1,10 +1,11 @@
+
 import type { Metadata } from "next";
-import Link from "next/link";
 import { Plus_Jakarta_Sans, Newsreader } from "next/font/google";
+import Link from "next/link";
+import Script from "next/script";
 import "./globals.css";
 import { SITE_NAME, SITE_URL } from "@/lib/format";
 import { ThemeToggle } from "@/components/ThemeToggle";
-
 const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
   variable: "--font-jakarta",
@@ -20,8 +21,12 @@ const newsreader = Newsreader({
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: { default: `${SITE_NAME}: AI and technology news, summarised`, template: `%s · ${SITE_NAME}` },
-  description: "Curated AI and technology news, including Ghana and Africa. AI-generated summaries that link to the original reporting.",
+  title: {
+    default: `${SITE_NAME}: AI and technology news, summarised`,
+    template: `%s · ${SITE_NAME}`,
+  },
+  description:
+    "Curated AI and technology news, including Ghana and Africa. AI-generated summaries that link to the original reporting.",
   alternates: { types: { "application/rss+xml": "/feed.xml" } },
 };
 
@@ -51,8 +56,10 @@ const themeScript = `(function() {
   try {
     var saved = localStorage.getItem('salfra-theme');
     var theme = saved;
-    if (!theme || (theme !== 'light' && theme !== 'dark' && theme !== 'eye-protection')) {
-      theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    if (!theme || !['light', 'dark', 'eye-protection'].includes(theme)) {
+      theme = window.matchMedia('(prefers-color-scheme: dark)').matches
+        ? 'dark'
+        : 'light';
     }
     document.documentElement.setAttribute('data-theme', theme);
   } catch (err) {
@@ -60,32 +67,100 @@ const themeScript = `(function() {
   }
 })();`;
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   return (
-    <html lang="en" suppressHydrationWarning className={`${jakarta.variable} ${newsreader.variable}`}>
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
-      </head>
+    <html
+      lang="en"
+      className={`${jakarta.variable} ${newsreader.variable}`}
+      suppressHydrationWarning
+    >
       <body>
-        <a className="skip" href="#main">Skip to content</a>
+        <Script id="salfra-theme-init" strategy="beforeInteractive">
+          {themeScript}
+        </Script>
+
+        <a className="skip" href="#main">
+          Skip to content
+        </a>
+
         <header className="site">
           <div className="wrap">
-            <Link className="brand" href="/">{SITE_NAME}</Link>
+            <Link className="brand" href="/">
+              {SITE_NAME}
+            </Link>
+
             <div className="header-nav-wrap">
               <nav className="main" aria-label="Main">
-                {NAV.map(([href, label]) => <Link key={href} href={href}>{label}</Link>)}
+                {NAV.map(([href, label]) => (
+                  <Link key={href} href={href}>
+                    {label}
+                  </Link>
+                ))}
               </nav>
+
               <ThemeToggle />
             </div>
           </div>
         </header>
-        <main id="main" className="wrap">{children}</main>
-        <footer className="site">
-          <div className="wrap">
-            <p>Summaries are AI-generated and may contain errors. Always check the linked original sources.</p>
-            <nav aria-label="Footer">
-              {FOOTER.map(([href, label]) => <span key={href}><Link href={href}>{label}</Link>{" · "}</span>)}
-            </nav>
+
+        <main id="main" className="w-full min-w-0">
+          {children}
+        </main>
+
+        <footer className="mt-10 border-t border-gray-200 bg-gray-50 sm:mt-12">
+          <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8 lg:py-12">
+            <div className="grid min-w-0 gap-8 md:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] md:gap-12">
+              <div className="min-w-0">
+                <Link
+                  href="/"
+                  className="inline-block text-xl font-extrabold tracking-tight text-gray-950 no-underline hover:text-blue-700 hover:no-underline"
+                >
+                  {SITE_NAME}
+                  <span className="text-blue-700">.</span>
+                </Link>
+
+                <p className="mt-3 max-w-sm text-sm leading-6 text-gray-600 sm:leading-7">
+                  AI and technology news, curated and summarised, with links
+                  to original reporting and a focus on developments that matter.
+                </p>
+              </div>
+
+              <div className="min-w-0">
+                <p className="text-xs font-bold uppercase tracking-[0.16em] text-gray-500 sm:tracking-[0.18em]">
+                  Explore SALFRA
+                </p>
+
+                <nav
+                  aria-label="Footer navigation"
+                  className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1 sm:flex sm:flex-wrap sm:gap-x-6 sm:gap-y-2"
+                >
+                  {FOOTER.map(([href, label]) => (
+                    <Link
+                      key={href}
+                      href={href}
+                      className="inline-flex min-h-11 min-w-0 items-center py-2 text-sm font-medium leading-5 text-gray-600 no-underline transition-colors hover:text-blue-700 hover:no-underline focus-visible:rounded focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700 sm:min-h-9"
+                    >
+                      {label}
+                    </Link>
+                  ))}
+                </nav>
+              </div>
+            </div>
+
+            <div className="mt-7 border-t border-gray-200 pt-5 sm:mt-9">
+              <p className="max-w-3xl text-xs leading-5 text-gray-500 sm:leading-6">
+                Summaries are AI-generated and may contain errors. Always
+                check the linked original sources for context and accuracy.
+              </p>
+
+              <p className="mt-3 text-xs leading-5 text-gray-400 sm:mt-4">
+                © {new Date().getFullYear()} {SITE_NAME}. All rights reserved.
+              </p>
+            </div>
           </div>
         </footer>
       </body>

@@ -1,8 +1,7 @@
 # AGENTS.md — Agentic Operating Procedures & Repository Guidelines
-
-**Platform:** Salfra AI News Curator  
-**Repository Context:** Fork of Upstream  
-- **Fork (Current Repo):** `cooking336-1/Salfra` (`origin`) — *Full Admin Permissions*
+**Platform:** Salfra AI News Curator
+**Repository Context:** Fork of Upstream
+- **Fork (Current Repo):**`cooking336-1/Salfra` (`origin`) — *Full Admin Permissions*
 - **Upstream (Parent Repo):** `Yaotib/Salfra` (`upstream`) — *External Target for Upstream PRs*
 - **Target Branch for Upstream PRs:** `Yaotib/Salfra:main`
 - **Author Identity:** `@me` (`cooking336-1`)
@@ -204,7 +203,6 @@ Upstream maintainers may take days or weeks to review and merge PRs. To ensure s
    ```bash
    # Sync fork main with upstream main
    git fetch upstream main
-   
    # Delete completed local branch (use -D because squashed commits have new SHAs)
    git branch -D <branch-name>
 
