@@ -12,37 +12,12 @@ export function StoryCard({ s }: { s: StoryCardData }) {
         : null;
 
   return (
-    <article className="group border-b border-gray-200 px-5 py-5 transition-colors hover:bg-gray-50/70 sm:px-6">
-      <ul
-        className="mb-3 flex list-none flex-wrap items-center gap-2 p-0"
-        aria-label="Story topics and status"
-      >
-        {s.categories.map((category) => (
-          <li
-            key={category}
-            className="rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-semibold text-blue-800"
-          >
-            {category}
-          </li>
-        ))}
-
-        {regionTag && (
-          <li className="rounded-full bg-gray-100 px-2.5 py-1 text-[11px] font-semibold text-gray-700">
-            {regionTag}
-          </li>
-        )}
-
-        {s.status === "updated" && (
-          <li className="rounded-full bg-amber-50 px-2.5 py-1 text-[11px] font-semibold text-amber-800">
-            Updated
-          </li>
-        )}
-
-        {s.is_limited && (
-          <li className="rounded-full border border-gray-200 px-2.5 py-1 text-[11px] font-medium text-gray-500">
-            Limited coverage
-          </li>
-        )}
+    <article className="card">
+      <ul className="tags" aria-label="Topics">
+        {s.categories.map((c) => <li key={c} className="tag">{c}</li>)}
+        {regionTag && <li className="tag">{regionTag}</li>}
+        {s.status === "updated" && <li className="badge">Updated</li>}
+        {s.is_limited && <li className="badge">Limited entry</li>}
       </ul>
 
       <h2 className="text-lg font-bold leading-snug tracking-tight text-gray-950 sm:text-xl">

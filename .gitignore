@@ -8,3 +8,4 @@ node_modules/
 .next/
 eval/out/
 *.sql.gpg
+docs/system_improvements_and_audit.md

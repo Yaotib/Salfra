@@ -22,7 +22,6 @@ class Config:
     llm_model: str | None
     llm_json_mode: bool
     llm_min_interval: float
-    llm_reasoning_effort=_get("LLM_REASONING_EFFORT"),
     heartbeat_url: str | None
     monitor_heartbeat_url: str | None
     smtp_host: str | None
@@ -33,6 +32,7 @@ class Config:
     alert_from: str | None
     max_articles_per_run: int
     max_items_per_source: int
+    llm_reasoning_effort: str | None = None
 
     @property
     def llm_configured(self) -> bool:
@@ -62,4 +62,5 @@ def load_config() -> Config:
         alert_from=_get("ALERT_EMAIL_FROM"),
         max_articles_per_run=int(_get("MAX_ARTICLES_PER_RUN", "40")),
         max_items_per_source=int(_get("MAX_ITEMS_PER_SOURCE", "40")),
+        llm_reasoning_effort=_get("LLM_REASONING_EFFORT"),
     )
