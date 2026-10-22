@@ -1,6 +1,5 @@
 // web/src/app/admin/(panel)/settings/page.tsx
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
 import { sql } from "@/lib/db";
 import { updateSetting } from "../actions";
@@ -13,7 +12,6 @@ const NUMS = ["max_stories_per_day", "llm_daily_call_budget", "freshness_hours",
 export default async function Settings({ searchParams }: { searchParams: Promise<{ msg?: string }> }) {
   await requireAdmin([]);
   const { msg } = await searchParams;
-  if (msg === undefined && false) redirect("/admin");
   const s = Object.fromEntries((await sql<any[]>`select key, value from settings`).map((r) => [r.key, r.value]));
   return (
     <>
