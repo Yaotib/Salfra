@@ -2,7 +2,6 @@
 import postgres from "postgres";
 
 declare global {
- 
   var __sql: ReturnType<typeof postgres> | undefined;
 }
 
