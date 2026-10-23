@@ -82,16 +82,7 @@ export default async function Settings({
   await requireAdmin([]);
 
   const { msg } = await searchParams;
-
-  const settingsRows = await sql<any[]>`
-    select key, value
-    from settings
-  `;
-
-  const settings = Object.fromEntries(
-    settingsRows.map((row) => [row.key, row.value])
-  );
-
+  const settings = Object.fromEntries((await sql<any[]>`select key, value from settings`).map((r) => [r.key, r.value]));
   return (
     <>
       <h1>Settings (owner only)</h1>
@@ -173,4 +164,3 @@ export default async function Settings({
     </>
   );
 }
-

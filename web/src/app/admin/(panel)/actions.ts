@@ -77,7 +77,7 @@ export async function saveEdit(fd: FormData) {
                 ${note || "manual edit"}, true, ${admin.email})`;
       await tx`update stories set headline = ${headline}, card_summary = ${card}, body = ${J(body)},
         categories = ${tx.array(cats)}, region = ${region},
-        search_text = ${`${body.what_happened} ${body.why_it_matters}`} || ' ' || array_to_string(entities, ' ')
+        search_text = ${body.what_happened + " " + body.why_it_matters + " "} || array_to_string(entities, ' ')
         where id = ${id}`;
       if (material && ["published", "updated"].includes(s.status)) {
         await tx`update stories set status = 'updated', last_material_update_at = now() where id = ${id}`;
@@ -104,7 +104,7 @@ export async function applyProposal(fd: FormData) {
       await tx`update story_versions set status = 'superseded' where story_id = ${id} and status = 'current'`;
       await tx`update story_versions set status = 'current', created_by = ${admin.email + ' (approved)'} where id = ${versionId}`;
       await tx`update stories set headline = ${v.headline}, card_summary = ${v.card_summary}, body = ${J(v.body)},
-        search_text = ${`${v.body.what_happened ?? ""} ${v.body.why_it_matters ?? ""}`} || ' ' || array_to_string(entities, ' '),
+        search_text = ${(v.body.what_happened ?? "") + " " + (v.body.why_it_matters ?? "") + " "} || array_to_string(entities, ' '),
         needs_attention = null where id = ${id}`;
       if (live) await tx`update stories set status = 'updated', last_material_update_at = now() where id = ${id}`;
       if (note) await tx`insert into story_corrections (story_id, note, created_by) values (${id}, ${note}, ${admin.email})`;

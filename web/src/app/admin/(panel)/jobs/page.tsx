@@ -601,4 +601,3 @@ export default async function Jobs({
     </main>
   );
 }
-

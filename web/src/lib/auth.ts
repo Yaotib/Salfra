@@ -16,38 +16,16 @@ export async function requireAdmin(allowed: Role[] = ["editor", "sources"]): Pro
     if (aal?.currentLevel !== "aal2") redirect("/admin/mfa");
   }
 
-const dbCheck = await sql<{
-  current_database: string;
-  current_user: string;
-  admin_count: number;
-}[]>`
-  SELECT
-    current_database() AS current_database,
-    current_user AS current_user,
-    (SELECT count(*)::int FROM public.admins) AS admin_count
-`;
-
-console.log("SALFRA database connection check:", dbCheck[0]);
-
   const rows = await sql<{ role: Role }[]>`
-  select role
-  from public.admins
-  where user_id = ${user.id}
-`;
+    select role
+    from public.admins
+    where user_id = ${user.id}
+  `;
 
+  const role = rows[0]?.role;
 
-const role = rows[0]?.role;
-
-console.log("Admin authorization check:", {
-  userId: user.id,
-  email: user.email,
-  adminRecordFound: rows.length > 0,
-  role: role ?? null,
-  allowedRoles: allowed,
-});
-
-if (!role || (role !== "owner" && !allowed.includes(role))) {
-  redirect("/admin/login?error=forbidden");
-}
+  if (!role || (role !== "owner" && !allowed.includes(role))) {
+    redirect("/admin/login?error=forbidden");
+  }
   return { id: user.id, email: user.email ?? "unknown", role };
 }
