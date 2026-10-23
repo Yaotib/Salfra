@@ -5,6 +5,7 @@ import { notFound, redirect } from "next/navigation";
 import { formatTime, iso, SITE_URL } from "@/lib/format";
 import { getStory, getStoryDetail } from "@/lib/queries";
 import { EVIDENCE_LABELS } from "@/lib/types";
+import { StoryMedia } from "@/components/StoryMedia";
 
 export const revalidate = 300;
 
@@ -19,18 +20,22 @@ const ROLE: Record<string, string> = {
 export async function generateMetadata({ params }: P): Promise<Metadata> {
   const s = await getStory((await params).slug);
   if (!s || s.merged_slug) return { title: "Story not found" };
+  const og: Metadata["openGraph"] = {
+    type: "article",
+    title: s.headline,
+    description: s.card_summary,
+    url: `${SITE_URL}/stories/${s.slug}`,
+  };
+  if (s.media_url && s.media_type === "image") {
+    og.images = [{ url: s.media_url, alt: s.media_alt_text || s.headline }];
+  }
   return {
     title: s.headline,
     description: s.card_summary,
     alternates: {
       canonical: `/stories/${s.slug}`,
     },
-    openGraph: {
-      type: "article",
-      title: s.headline,
-      description: s.card_summary,
-      url: `${SITE_URL}/stories/${s.slug}`,
-    },
+    openGraph: og,
   };
 }
 
@@ -58,6 +63,15 @@ export default async function StoryPage({ params }: P) {
         First reported <time dateTime={iso(s.first_reported_at)}>{formatTime(s.first_reported_at)}</time>
         {s.last_material_update_at && <> · Updated <time dateTime={iso(s.last_material_update_at)}>{formatTime(s.last_material_update_at)}</time></>}
       </p>
+      <StoryMedia
+        mediaUrl={s.media_url}
+        mediaType={s.media_type}
+        sourceName={s.media_source_name}
+        sourceUrl={s.media_source_url}
+        altText={s.media_alt_text}
+        license={s.media_license}
+        headline={s.headline}
+      />
       {withdrawn ? (
         <div className="notice" role="alert"><strong>This story has been withdrawn.</strong> {s.withdrawn_reason}</div>
       ) : (

@@ -9,6 +9,7 @@ const LIVE = sql`status in ('published','updated')`;
 
 const cardCols = () => sql`id, slug, headline, card_summary, categories, region, evidence_label, is_limited, status,
   first_reported_at, last_material_update_at,
+  media_url, media_type, media_source_name, media_source_url, media_alt_text, media_license,
   (select coalesce(array_agg(distinct s.name), '{}') from story_articles sa
      join source_articles a on a.id = sa.article_id join sources s on s.id = a.source_id
      where sa.story_id = stories.id) as publishers`;
