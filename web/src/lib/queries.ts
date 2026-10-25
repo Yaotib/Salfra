@@ -76,11 +76,12 @@ export async function getStoryDetail(id: string) {
     sql<{ note: string; created_at: Date }[]>`select note, created_at from story_corrections
       where story_id = ${id} and is_public order by created_at desc`,
     sql<{ slug: string; headline: string; kind: string }[]>`
-      select s.slug, s.headline, 'earlier' as kind from story_links l join stories s on s.id = l.to_story
-        where l.from_story = ${id} and s.status in ('published','updated')
+      select s.slug, s.headline, 'earlier' as kind from stories curr
+        join stories s on s.id = curr.follow_up_to
+        where curr.id = ${id} and s.status in ('published','updated')
       union all
-      select s.slug, s.headline, 'follow_up' as kind from story_links l join stories s on s.id = l.from_story
-        where l.to_story = ${id} and s.status in ('published','updated')`,
+      select s.slug, s.headline, 'follow_up' as kind from stories s
+        where s.follow_up_to = ${id} and s.status in ('published','updated')`,
     sql<{ slug: string; headline: string; first_reported_at: Date }[]>`
       select slug, headline, first_reported_at from stories
       where id <> ${id} and status in ('published','updated')

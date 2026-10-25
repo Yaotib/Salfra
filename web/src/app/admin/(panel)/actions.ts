@@ -208,7 +208,8 @@ export async function splitArticle(fd: FormData) {
         join story_articles sa on sa.article_id = a.id where a.id = ${articleId} and sa.story_id = ${id}`;
       if (!a) throw new Error("Article is not part of this story");
       const [old] = await tx`select categories, region, story_type, entities, entity_keys from stories where id = ${id}`;
-      const slug = `${a.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60)}-${randomBytes(3).toString("hex")}`;
+      const base = a.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 70).replace(/-+$/, "") || "story";
+      const slug = `${base}-${randomBytes(3).toString("hex")}`;
       const [ns] = await tx`insert into stories (slug, headline, card_summary, body, categories, region, story_type, is_limited,
           risk_flags, review_priority, entities, entity_keys, first_reported_at)
         values (${slug}, ${a.title.slice(0, 140)}, ${(a.excerpt || a.title).slice(0, 450)}, ${J({ limited: true })},
@@ -240,20 +241,19 @@ export async function saveSource(fd: FormData) {
       is_primary: fd.get("is_primary") === "on", region_hint: str(fd, "region_hint"), access_method: str(fd, "access_method"),
       feed_url: feed.toString(), terms_url: str(fd, "terms_url") || null, terms_notes: str(fd, "terms_notes") || null,
       terms_reviewed_at: str(fd, "terms_reviewed_at") || null, allow_fulltext: fd.get("allow_fulltext") === "on",
-      poll_interval_minutes: Number(str(fd, "poll_interval_minutes")) || null,
     };
     if (!v.name || !v.domain) throw new Error("Name and domain are required");
     await sql.begin(async (tx) => {
       if (id) {
         await tx`update sources set name = ${v.name}, domain = ${v.domain}, source_type = ${v.source_type}, is_primary = ${v.is_primary},
           region_hint = ${v.region_hint}, access_method = ${v.access_method}, feed_url = ${v.feed_url}, terms_url = ${v.terms_url},
-          terms_notes = ${v.terms_notes}, terms_reviewed_at = ${v.terms_reviewed_at}, allow_fulltext = ${v.allow_fulltext},
-          poll_interval_minutes = ${v.poll_interval_minutes} where id = ${id}`;
+          terms_notes = ${v.terms_notes}, terms_reviewed_at = ${v.terms_reviewed_at}, allow_fulltext = ${v.allow_fulltext}
+          where id = ${id}`;
       } else {
         await tx`insert into sources (name, domain, source_type, is_primary, region_hint, access_method, feed_url, terms_url,
-          terms_notes, terms_reviewed_at, allow_fulltext, poll_interval_minutes, status)
+          terms_notes, terms_reviewed_at, allow_fulltext, status)
           values (${v.name}, ${v.domain}, ${v.source_type}, ${v.is_primary}, ${v.region_hint}, ${v.access_method}, ${v.feed_url},
-          ${v.terms_url}, ${v.terms_notes}, ${v.terms_reviewed_at}, ${v.allow_fulltext}, ${v.poll_interval_minutes}, 'paused')`;
+          ${v.terms_url}, ${v.terms_notes}, ${v.terms_reviewed_at}, ${v.allow_fulltext}, 'paused')`;
       }
       await audit(tx as unknown as DB, admin.email, id ? "source.updated" : "source.created", "source", id || v.domain, undefined, v);
     });
