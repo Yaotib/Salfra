@@ -88,8 +88,9 @@ def create_story(conn, *, article, rel, summary, evidence, limited: bool, flags,
         sid = conn.execute(
             """insert into stories (slug, headline, card_summary, body, search_text, categories, region, story_type,
                                     is_limited, risk_flags, review_priority, entities, entity_keys, first_reported_at,
-                                    media_url, media_type, media_source_name, media_source_url, media_alt_text, media_license)
-               values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) returning id""",
+                                    media_url, media_type, media_source_name, media_source_url, media_alt_text, media_license,
+                                    follow_up_to)
+               values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) returning id""",
             (make_slug(summary.headline), summary.headline, summary.card_summary, Jsonb(body), search_text,
              final_categories(rel), rel.region, rel.story_type, limited, flags, priority, rel.entities,
              [e.lower() for e in rel.entities], article["published_at"] or article["collected_at"],
@@ -97,7 +98,8 @@ def create_story(conn, *, article, rel, summary, evidence, limited: bool, flags,
              article.get("media_source_name") or article.get("publisher"),
              article.get("media_source_url") or article.get("canonical_url"),
              article.get("media_alt_text") or summary.headline,
-             article.get("media_license"))).fetchone()["id"]
+             article.get("media_license"),
+             follow_up_of)).fetchone()["id"]
         conn.execute("insert into story_articles (story_id, article_id, role) values (%s, %s, %s)",
                      (sid, article["id"], "primary" if article["is_primary"] else "independent"))
         conn.execute(
@@ -112,9 +114,6 @@ def create_story(conn, *, article, rel, summary, evidence, limited: bool, flags,
              article.get("media_alt_text") or summary.headline,
              article.get("media_license")))
         conn.execute("update source_articles set state = 'grouped' where id = %s", (article["id"],))
-        if follow_up_of:
-            conn.execute("insert into story_links (from_story, to_story, link_type) values (%s, %s, 'follow_up')",
-                         (sid, follow_up_of))
         refresh_label(conn, sid)
         conn.execute("update stories set status = 'awaiting_review' where id = %s", (sid,))
         audit(conn, "pipeline", "story.created", "story", str(sid), None, {"headline": summary.headline, "flags": flags})
