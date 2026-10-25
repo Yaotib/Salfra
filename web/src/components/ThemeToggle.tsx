@@ -51,6 +51,21 @@ export function ThemeToggle() {
       // The layout's initial theme script remains the fallback.
     }
 
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    const handleSystemChange = (e: MediaQueryListEvent) => {
+      try {
+        const saved = localStorage.getItem("salfra-theme");
+        if (!isTheme(saved)) {
+          const sysTheme: ThemeMode = e.matches ? "dark" : "light";
+          setCurrentTheme(sysTheme);
+          document.documentElement.setAttribute("data-theme", sysTheme);
+        }
+      } catch {
+        // Fallback gracefully
+      }
+    };
+    mediaQuery.addEventListener("change", handleSystemChange);
+
     function handleOutsideClick(event: MouseEvent) {
       if (
         containerRef.current &&
@@ -70,6 +85,7 @@ export function ThemeToggle() {
     document.addEventListener("keydown", handleEscape);
 
     return () => {
+      mediaQuery.removeEventListener("change", handleSystemChange);
       document.removeEventListener("mousedown", handleOutsideClick);
       document.removeEventListener("keydown", handleEscape);
     };
