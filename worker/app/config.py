@@ -24,12 +24,7 @@ class Config:
     llm_min_interval: float
     heartbeat_url: str | None
     monitor_heartbeat_url: str | None
-    smtp_host: str | None
-    smtp_port: int
-    smtp_user: str | None
-    smtp_password: str | None
-    alert_to: str | None
-    alert_from: str | None
+    alert_webhook_url: str | None
     max_articles_per_run: int
     max_items_per_source: int
     llm_reasoning_effort: str | None = None
@@ -54,12 +49,7 @@ def load_config() -> Config:
         llm_min_interval=float(_get("LLM_MIN_INTERVAL_SECONDS", "4")),
         heartbeat_url=_get("HEARTBEAT_URL"),
         monitor_heartbeat_url=_get("MONITOR_HEARTBEAT_URL"),
-        smtp_host=_get("SMTP_HOST"),
-        smtp_port=int(_get("SMTP_PORT", "587")),
-        smtp_user=_get("SMTP_USER"),
-        smtp_password=_get("SMTP_PASSWORD"),
-        alert_to=_get("ALERT_EMAIL_TO"),
-        alert_from=_get("ALERT_EMAIL_FROM"),
+        alert_webhook_url=_get("ALERT_WEBHOOK_URL"),
         max_articles_per_run=int(_get("MAX_ARTICLES_PER_RUN", "40")),
         max_items_per_source=int(_get("MAX_ITEMS_PER_SOURCE", "40")),
         llm_reasoning_effort=_get("LLM_REASONING_EFFORT"),

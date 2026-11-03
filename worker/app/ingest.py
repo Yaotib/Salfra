@@ -289,11 +289,6 @@ def ingest_all(conn, cfg, run_id) -> dict:
     threshold = int(get_setting(conn, "source_failure_threshold", 3))
     total: Counter = Counter()
     for s in sources:
-        interval = s["poll_interval_minutes"]
-        if interval and s["last_polled_at"] and \
-                datetime.now(timezone.utc) - s["last_polled_at"] < timedelta(minutes=interval * 0.9):
-            total["skipped_interval"] += 1
-            continue
         try:
             total.update(ingest_source(conn, cfg, run_id, s))
             conn.execute("update sources set failure_count = 0, last_success_at = now(), last_polled_at = now() where id = %s",

@@ -1,9 +1,7 @@
 # worker/app/alerts.py
 from __future__ import annotations
 
-import smtplib
 import sys
-from email.message import EmailMessage
 
 import httpx
 
@@ -26,19 +24,23 @@ def send_alert(conn, cfg, key: str, subject: str, body: str, cooldown_hours: int
 
 def _deliver(cfg, subject: str, body: str) -> None:
     print(f"[ALERT] {subject}: {body}", file=sys.stderr)
-    if not (cfg.smtp_host and cfg.alert_to):
+    webhook_url = getattr(cfg, "alert_webhook_url", None)
+    if not webhook_url:
         return
     try:
-        msg = EmailMessage()
-        msg["Subject"] = f"[AI News] {subject}"
-        msg["From"] = cfg.alert_from or cfg.alert_to
-        msg["To"] = cfg.alert_to
-        msg.set_content(body)
-        with smtplib.SMTP(cfg.smtp_host, cfg.smtp_port, timeout=20) as smtp:
-            smtp.starttls()
-            if cfg.smtp_user:
-                smtp.login(cfg.smtp_user, cfg.smtp_password or "")
-            smtp.send_message(msg)
+        # Payload supports Discord, Slack, and generic webhook endpoints
+        payload = {
+            "text": f"*[ALERT] {subject}*\n{body}",
+            "content": f"**[ALERT] {subject}**\n{body}",
+            "embeds": [{
+                "title": f"[ALERT] {subject}",
+                "description": body,
+                "color": 0xFFA500,
+            }],
+        }
+        resp = httpx.post(webhook_url, json=payload, timeout=10.0)
+        if resp.status_code >= 400:
+            print(f"alert webhook delivery error {resp.status_code}: {resp.text}", file=sys.stderr)
     except Exception as exc:  # an alerting failure must never crash a run
         print(f"alert delivery failed: {exc}", file=sys.stderr)
 

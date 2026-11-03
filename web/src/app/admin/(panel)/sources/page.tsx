@@ -331,19 +331,6 @@ function SourceForm({ s }: { s?: any }) {
             className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm leading-6 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
           />
         </div>
-
-        <div className="sm:max-w-xs">
-          <Field
-            label="Polling interval (minutes)"
-            name="poll_interval_minutes"
-            type="number"
-            min={1}
-            defaultValue={s?.poll_interval_minutes ?? ""}
-          />
-          <p className="mt-1 text-[11px] leading-5 text-gray-400">
-            Optional source-specific interval.
-          </p>
-        </div>
       </div>
 
       <div className="flex flex-col gap-3 border-t border-gray-200 pt-5 sm:flex-row sm:items-center sm:justify-between">
